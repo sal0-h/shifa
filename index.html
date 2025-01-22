@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Super Journal with AI Bear, Settings & Sentiment Analysis</title>
+  <style>
+    /* 
+      BIG, BOLD, AND BEAUTIFUL STYLING 
+      (Feel free to adjust as you wish)
+    */
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #f7f9fc;
+    }
+
+    /* NAVBAR STYLES */
+    nav {
+      display: flex;
+      justify-content: flex-start;
+      background-color: #007BFF;
+      padding: 10px;
+    }
+    nav button {
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 16px;
+      margin-right: 20px;
+      cursor: pointer;
+      padding: 8px 12px;
+      border-radius: 4px;
+    }
+    nav button:hover,
+    nav button.active {
+      background-color: #0056b3;
+    }
+
+    /* MAIN CONTAINER */
+    .container {
+      max-width: 800px;
+      margin: 20px auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    /* TABS (we'll show/hide these sections) */
+    .tab-content {
+      display: none; /* hidden by default; shown when active */
+    }
+    .tab-content.active {
+      display: block;
+    }
+
+    /* JOURNAL STYLES */
+    .journal-form {
+      margin-bottom: 30px;
+    }
+    .journal-form h2 {
+      margin-top: 0;
+    }
+    .journal-form label {
+      display: block;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+    .journal-form input[type="text"],
+    .journal-form textarea {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    .journal-form input[type="file"] {
+      margin-top: 5px;
+    }
+    .journal-form button {
+      margin-top: 10px;
+      background-color: #007BFF;
+      border: none;
+      color: #fff;
+      padding: 10px 16px;
+      cursor: pointer;
+      border-radius: 4px;
+      font-size: 16px;
+      margin-right: 10px;
+    }
+    .journal-form button:hover {
+      background-color: #0056b3;
+    }
+
+    /* ENTRY CARDS */
+    .entry-list {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .entry-card {
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 15px;
+      position: relative;
+      background-color: #fafafa;
+    }
+    .entry-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .entry-title {
+      font-size: 18px;
+      font-weight: bold;
+      margin: 0;
+      padding: 0;
+    }
+    .entry-timestamp {
+      font-size: 12px;
+      color: #666;
+    }
+    .entry-text {
+      margin: 10px 0;
+      white-space: pre-line;
+    }
+    .entry-img {
+      max-width: 200px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    .entry-actions button {
+      background-color: #6c757d;
+      border: none;
+      color: #fff;
+      padding: 6px 10px;
+      cursor: pointer;
+      border-radius: 4px;
+      margin-right: 6px;
+      font-size: 14px;
+    }
+    .entry-actions button:hover {
+      background-color: #4c4c4c;
+    }
+
+    /* FOCUS MODE (MODAL) */
+    .modal-bg {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      display: none; /* hidden by default */
+      justify-content: center;
+      align-items: center;
+    }
+    .modal-bg.active {
+      display: flex;
+    }
+    .modal-content {
+      background: #fff;
+      padding: 20px;
+      max-width: 600px;
+      width: 100%;
+      border-radius: 6px;
+      position: relative;
+    }
+    .modal-close {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: #dc3545;
+      color: #fff;
+      border: none;
+      padding: 6px 10px;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    .modal-close:hover {
+      background: #c82333;
+    }
+    .modal-content img {
+      max-width: 100%;
+      display: block;
+      margin-top: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    /* SETTINGS TAB */
+    .settings button {
+      margin-top: 10px;
+      background-color: #dc3545;
+      border: none;
+      color: #fff;
+      padding: 10px 16px;
+      cursor: pointer;
+      border-radius: 4px;
+      font-size: 16px;
+    }
+    .settings button:hover {
+      background-color: #c82333;
+    }
+
+    /* AI BEAR TAB (placeholder) */
+    .ai-bear {
+      text-align: center;
+    }
+    .ai-bear img {
+      width: 150px;
+      margin-bottom: 20px;
+    }
+
+    /* EDITING STATE */
+    .editing {
+      background-color: #ffe8a1; /* highlight card being edited */
+    }
+
+    /* SENTIMENT TAB */
+    .sentiment-list .entry-card {
+      background-color: #fff; /* distinct from main journal feed */
+    }
+    .sentiment-score {
+      font-weight: bold;
+      margin-top: 8px;
+    }
+    .positive {
+      color: green;
+    }
+    .negative {
+      color: red;
+    }
+    .neutral {
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <!-- NAVIGATION -->
+  <nav>
+    <button id="tabJournal" class="active">Journal</button>
+    <button id="tabAIBear">AI Bear</button>
+    <button id="tabSettings">Settings</button>
+    <button id="tabSentiment">Sentiment</button>
+  </nav>
+
+  <!-- MAIN CONTENT CONTAINER -->
+  <div class="container">
+
+    <!-- JOURNAL TAB -->
+    <section id="journalTab" class="tab-content active">
+      <div class="journal-form">
+        <h2 id="formTitle">Add a New Entry</h2>
+        
+        <label for="entryTitle">Title</label>
+        <input type="text" id="entryTitle" placeholder="My Great Day" />
+
+        <label for="entryText">Text</label>
+        <textarea id="entryText" placeholder="Write your thoughts..."></textarea>
+
+        <label for="entryImage">Optional Image</label>
+        <input type="file" id="entryImage" accept="image/*" />
+
+        <!-- Add these for Whisper voice input -->
+        <label>Voice Input</label>
+        <button id="recordBtn">Record</button>
+        <button id="stopBtn" style="display:none;">Stop</button>
+
+        <!-- Hidden input to store the ID of the entry we're editing, if any -->
+        <input type="hidden" id="editId" />
+
+        <button id="saveBtn">Save Entry</button>
+      </div>
+
+      <h2>Past Entries</h2>
+      <div class="entry-list" id="entryList"></div>
+    </section>
+
+    <!-- AI BEAR TAB -->
+    <section id="aiBearTab" class="tab-content">
+      <div class="ai-bear">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1c/Teddy_bear_icon_1.svg/1200px-Teddy_bear_icon_1.svg.png" alt="Teddy Bear" />
+        <h2>AI Bear (Coming Soon)</h2>
+        <p>Imagine a cute AI teddy that chats with you here. In the future, it might provide AI-based comfort!</p>
+      </div>
+    </section>
+
+    <!-- SETTINGS TAB -->
+    <section id="settingsTab" class="tab-content settings">
+      <h2>Settings</h2>
+      <p>Manage your journal data here.</p>
+      <button id="clearAllBtn">Delete All Entries</button>
+    </section>
+
+    <!-- SENTIMENT TAB -->
+    <section id="sentimentTab" class="tab-content">
+      <h2>Sentiment Analysis</h2>
+      <div id="sentimentStats"></div>
+      <div class="sentiment-list" id="sentimentList"></div>
+    </section>
+
+  </div>
+
+  <!-- FOCUS MODE MODAL -->
+  <div class="modal-bg" id="modalBg">
+    <div class="modal-content" id="modalContent">
+      <button class="modal-close" id="modalClose">&times;</button>
+      <h2 id="modalTitle"></h2>
+      <p class="timestamp" id="modalTimestamp"></p>
+      <p id="modalText"></p>
+      <img id="modalImage" alt="" />
+    </div>
+  </div>
+
+  <script>
+    /********************************************************
+     *      OPENAI API KEY (FOR DEMO PURPOSES ONLY)
+     *      WARNING: This is insecure if deployed publicly!
+     ********************************************************/
+    const OPENAI_API_KEY = "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";
+
+    /********************************************************
+     * JOURNAL DATA STRUCTURE:
+     * entry = {
+     *   id: string (unique),
+     *   title: string,
+     *   text: string,
+     *   image: base64 string or null,
+     *   timestamp: string,
+     *   sentimentScore: number (from -1 to +1),
+     * }
+     ********************************************************/
+
+    let journalEntries = [];
+    let isEditing = false;
+
+    // Sentiment dictionary
+    const sentimentWords = {
+      positive: ["happy", "joy", "love", "great", "awesome", "fantastic", "good", "excellent", "wonderful", "amazing"],
+      negative: ["sad", "angry", "bad", "terrible", "hate", "awful", "horrible", "pain", "worse", "worst", "depressed"],
+      neutral: ["okay", "fine", "alright", "normal", "average"]
+    };
+
+    // DOM Elements
+    const tabJournal = document.getElementById('tabJournal');
+    const tabAIBear = document.getElementById('tabAIBear');
+    const tabSettings = document.getElementById('tabSettings');
+    const tabSentimentBtn = document.getElementById('tabSentiment');
+
+    const journalTab = document.getElementById('journalTab');
+    const aiBearTab = document.getElementById('aiBearTab');
+    const settingsTab = document.getElementById('settingsTab');
+    const sentimentTab = document.getElementById('sentimentTab');
+
+    const entryList = document.getElementById('entryList');
+    const entryTitleInput = document.getElementById('entryTitle');
+    const entryTextInput = document.getElementById('entryText');
+    const entryImageInput = document.getElementById('entryImage');
+    const editIdInput = document.getElementById('editId');
+    const formTitle = document.getElementById('formTitle');
+    const saveBtn = document.getElementById('saveBtn');
+    const clearAllBtn = document.getElementById('clearAllBtn');
+
+    // Sentiment Tab Elements
+    const sentimentList = document.getElementById('sentimentList');
+    const sentimentStats = document.getElementById('sentimentStats');
+
+    // MODAL elements
+    const modalBg = document.getElementById('modalBg');
+    const modalClose = document.getElementById('modalClose');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalTimestamp = document.getElementById('modalTimestamp');
+    const modalText = document.getElementById('modalText');
+    const modalImage = document.getElementById('modalImage');
+
+    // ======================
+    //  WHISPER AUDIO LOGIC
+    // ======================
+    let recorder;
+    let audioChunks = [];
+
+    const recordBtn = document.getElementById("recordBtn");
+    const stopBtn = document.getElementById("stopBtn");
+
+    recordBtn.addEventListener("click", async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        recorder = new MediaRecorder(stream);
+        audioChunks = [];
+
+        recorder.ondataavailable = (e) => {
+          if (e.data.size > 0) {
+            audioChunks.push(e.data);
+          }
+        };
+
+        // When recording stops, send audio to OpenAI Whisper
+        recorder.onstop = async () => {
+          const blob = new Blob(audioChunks, { type: "audio/webm" });
+          const file = new File([blob], "recording.webm");
+
+          // Prepare form data
+          const formData = new FormData();
+          formData.append("file", file);
+          formData.append("model", "whisper-1");
+
+          try {
+            const response = await fetch("https://api.openai.com/v1/audio/transcriptions", {
+              method: "POST",
+              headers: {
+                "Authorization": `Bearer ${OPENAI_API_KEY}`
+              },
+              body: formData
+            });
+            const result = await response.json();
+
+            if (result.text) {
+              // Insert the transcribed text into our "entryText" area
+              entryTextInput.value = result.text;
+              console.log("Transcribed text:", result.text);
+            } else {
+              console.warn("OpenAI response did not include 'text':", result);
+              alert("Could not transcribe audio. Check console for details.");
+            }
+          } catch (err) {
+            console.error("Error sending audio to Whisper:", err);
+            alert("Failed to transcribe audio. See console.");
+          }
+        };
+
+        // Start recording
+        recorder.start();
+        recordBtn.style.display = "none";
+        stopBtn.style.display = "inline-block";
+        console.log("Recording started...");
+      } catch (err) {
+        console.error("Could not start recording:", err);
+        alert("Could not access microphone. Check permissions/HTTPS?");
+      }
+    });
+
+    stopBtn.addEventListener("click", () => {
+      if (recorder && recorder.state !== "inactive") {
+        recorder.stop();
+        recordBtn.style.display = "inline-block";
+        stopBtn.style.display = "none";
+        console.log("Recording stopped. Sending audio to OpenAI...");
+      }
+    });
+
+    // ========================================
+    //        TAB SWITCHING LOGIC
+    // ========================================
+    tabJournal.addEventListener('click', () => showTab('journal'));
+    tabAIBear.addEventListener('click', () => showTab('aibear'));
+    tabSettings.addEventListener('click', () => showTab('settings'));
+    tabSentimentBtn.addEventListener('click', () => {
+      showTab('sentiment');
+      renderSentimentTab();
+    });
+
+    function showTab(tab) {
+      // remove 'active' from all nav buttons
+      tabJournal.classList.remove('active');
+      tabAIBear.classList.remove('active');
+      tabSettings.classList.remove('active');
+      tabSentimentBtn.classList.remove('active');
+      // hide all tab content
+      journalTab.classList.remove('active');
+      aiBearTab.classList.remove('active');
+      settingsTab.classList.remove('active');
+      sentimentTab.classList.remove('active');
+
+      if (tab === 'journal') {
+        tabJournal.classList.add('active');
+        journalTab.classList.add('active');
+      } else if (tab === 'aibear') {
+        tabAIBear.classList.add('active');
+        aiBearTab.classList.add('active');
+      } else if (tab === 'settings') {
+        tabSettings.classList.add('active');
+        settingsTab.classList.add('active');
+      } else if (tab === 'sentiment') {
+        tabSentimentBtn.classList.add('active');
+        sentimentTab.classList.add('active');
+      }
+    }
+
+    // ========================================
+    //        INITIAL LOAD
+    // ========================================
+    window.onload = function() {
+      loadFromLocalStorage();
+      renderEntries();
+
+      // Button events
+      saveBtn.addEventListener('click', saveEntry);
+      clearAllBtn.addEventListener('click', clearAllEntries);
+      modalClose.addEventListener('click', closeModal);
+    };
+
+    // ========================================
+    //        ENTRY CRUD FUNCTIONS
+    // ========================================
+    function loadFromLocalStorage() {
+      const data = localStorage.getItem('crazyJournalEntries');
+      if (data) {
+        journalEntries = JSON.parse(data);
+      } else {
+        journalEntries = [];
+      }
+    }
+
+    function saveToLocalStorage() {
+      localStorage.setItem('crazyJournalEntries', JSON.stringify(journalEntries));
+    }
+
+    // Save or update an entry
+    async function saveEntry() {
+      const title = entryTitleInput.value.trim();
+      const text = entryTextInput.value.trim();
+      let imageBase64 = null;
+
+      // If user selected an image, read it as base64
+      if (entryImageInput.files && entryImageInput.files[0]) {
+        imageBase64 = await getBase64(entryImageInput.files[0]);
+      }
+
+      if (!title && !text) {
+        alert('Please enter a title or some text!');
+        return;
+      }
+
+      // Calculate sentiment
+      const sentimentScore = analyzeSentiment(text);
+
+      // Are we editing an existing entry?
+      const editId = editIdInput.value;
+      if (editId) {
+        // update existing
+        const index = journalEntries.findIndex(e => e.id === editId);
+        if (index >= 0) {
+          journalEntries[index].title = title || 'Untitled';
+          journalEntries[index].text = text;
+          journalEntries[index].sentimentScore = sentimentScore;
+          // if user selected new image, replace old one
+          if (imageBase64) {
+            journalEntries[index].image = imageBase64;
+          }
+        }
+      } else {
+        // create new
+        const newId = generateId();
+        const newEntry = {
+          id: newId,
+          title: title || 'Untitled',
+          text,
+          image: imageBase64,
+          timestamp: new Date().toLocaleString(),
+          sentimentScore
+        };
+        journalEntries.unshift(newEntry); // newest at top
+      }
+
+      // Save changes
+      saveToLocalStorage();
+      renderEntries();
+      clearForm();
+    }
+
+    // Delete an entry by ID
+    function deleteEntry(id) {
+      if (!confirm('Are you sure you want to delete this entry?')) return;
+      journalEntries = journalEntries.filter(e => e.id !== id);
+      saveToLocalStorage();
+      renderEntries();
+    }
+
+    // Edit an entry (populate the form)
+    function editEntry(id) {
+      const entry = journalEntries.find(e => e.id === id);
+      if (!entry) return;
+      isEditing = true;
+
+      // highlight the card
+      const card = document.getElementById(`entry-${id}`);
+      if (card) {
+        card.classList.add('editing');
+      }
+
+      // fill the form
+      entryTitleInput.value = entry.title;
+      entryTextInput.value = entry.text;
+      editIdInput.value = entry.id;
+      formTitle.textContent = 'Edit Entry';
+    }
+
+    // Cancel editing or finish
+    function clearForm() {
+      entryTitleInput.value = '';
+      entryTextInput.value = '';
+      entryImageInput.value = '';
+      editIdInput.value = '';
+      formTitle.textContent = 'Add a New Entry';
+      // remove editing highlight if any
+      const cards = document.querySelectorAll('.editing');
+      cards.forEach(card => card.classList.remove('editing'));
+      isEditing = false;
+    }
+
+    // Generate a random ID
+    function generateId() {
+      return '_' + Math.random().toString(36).substr(2, 9);
+    }
+
+    // ========================================
+    //        RENDERING
+    // ========================================
+    function renderEntries() {
+      entryList.innerHTML = '';
+      journalEntries.forEach(entry => {
+        const card = document.createElement('div');
+        card.className = 'entry-card';
+        card.id = `entry-${entry.id}`;
+
+        const header = document.createElement('div');
+        header.className = 'entry-header';
+
+        // Title & Timestamp
+        const titleEl = document.createElement('h3');
+        titleEl.className = 'entry-title';
+        titleEl.textContent = entry.title;
+
+        const timeEl = document.createElement('div');
+        timeEl.className = 'entry-timestamp';
+        timeEl.textContent = entry.timestamp;
+
+        header.appendChild(titleEl);
+        header.appendChild(timeEl);
+
+        // Body
+        const bodyEl = document.createElement('div');
+        bodyEl.className = 'entry-body';
+
+        const textEl = document.createElement('p');
+        textEl.className = 'entry-text';
+        textEl.textContent = entry.text;
+        bodyEl.appendChild(textEl);
+
+        // optional image
+        if (entry.image) {
+          const imgEl = document.createElement('img');
+          imgEl.className = 'entry-img';
+          imgEl.src = entry.image;
+          bodyEl.appendChild(imgEl);
+        }
+
+        // Actions
+        const actions = document.createElement('div');
+        actions.className = 'entry-actions';
+
+        const focusBtn = document.createElement('button');
+        focusBtn.textContent = 'Focus';
+        focusBtn.addEventListener('click', () => openModal(entry));
+
+        const editBtn = document.createElement('button');
+        editBtn.textContent = 'Edit';
+        editBtn.addEventListener('click', () => editEntry(entry.id));
+
+        const delBtn = document.createElement('button');
+        delBtn.textContent = 'Delete';
+        delBtn.addEventListener('click', () => deleteEntry(entry.id));
+
+        actions.appendChild(focusBtn);
+        actions.appendChild(editBtn);
+        actions.appendChild(delBtn);
+
+        card.appendChild(header);
+        card.appendChild(bodyEl);
+        card.appendChild(actions);
+
+        entryList.appendChild(card);
+      });
+    }
+
+    // ========================================
+    //        FOCUS MODE (MODAL)
+    // ========================================
+    function openModal(entry) {
+      modalTitle.textContent = entry.title;
+      modalTimestamp.textContent = entry.timestamp;
+      modalText.textContent = entry.text;
+      if (entry.image) {
+        modalImage.src = entry.image;
+        modalImage.style.display = 'block';
+      } else {
+        modalImage.src = '';
+        modalImage.style.display = 'none';
+      }
+      modalBg.classList.add('active');
+    }
+
+    function closeModal() {
+      modalBg.classList.remove('active');
+    }
+
+    // ========================================
+    //        CLEAR ALL
+    // ========================================
+    function clearAllEntries() {
+      if (!confirm('Are you sure you want to delete ALL entries?')) return;
+      journalEntries = [];
+      localStorage.removeItem('crazyJournalEntries');
+      renderEntries();
+      clearForm();
+    }
+
+    // ========================================
+    //  SENTIMENT ANALYSIS LOGIC
+    // ========================================
+    function analyzeSentiment(text) {
+      // Simple dictionary-based approach
+      let score = 0;
+      const words = text.toLowerCase().split(/\s+/);
+
+      words.forEach(word => {
+        if (sentimentWords.positive.includes(word)) {
+          score += 1;
+        } else if (sentimentWords.negative.includes(word)) {
+          score -= 1;
+        }
+      });
+
+      // Normalize between -1 and +1
+      if (words.length === 0) return 0;
+      const normalized = score / words.length;
+      return Math.max(-1, Math.min(1, normalized)); // clamp to -1..1
+    }
+
+    function renderSentimentTab() {
+      // Rebuild the entire sentiment tab
+      sentimentList.innerHTML = '';
+
+      let total = 0;
+      journalEntries.forEach(entry => {
+        total += entry.sentimentScore || 0;
+
+        // Build a small card
+        const card = document.createElement('div');
+        card.className = 'entry-card';
+
+        const titleEl = document.createElement('h3');
+        titleEl.textContent = entry.title;
+
+        const textEl = document.createElement('p');
+        textEl.textContent = entry.text;
+
+        // sentiment label
+        const scoreP = document.createElement('p');
+        scoreP.className = 'sentiment-score';
+        const s = entry.sentimentScore;
+        let sentimentClass = 'neutral';
+        if (s > 0) sentimentClass = 'positive';
+        if (s < 0) sentimentClass = 'negative';
+
+        scoreP.classList.add(sentimentClass);
+        scoreP.textContent = `Sentiment: ${s.toFixed(2)}`;
+
+        card.appendChild(titleEl);
+        card.appendChild(textEl);
+        card.appendChild(scoreP);
+
+        sentimentList.appendChild(card);
+      });
+
+      const avg = journalEntries.length ? (total / journalEntries.length) : 0;
+      sentimentStats.innerHTML = `
+        <p><strong>Total Entries:</strong> ${journalEntries.length}</p>
+        <p><strong>Average Sentiment:</strong> ${avg.toFixed(2)}</p>
+      `;
+    }
+
+    
+/********************************************************
+ *      AI BEAR THERAPIST LOGIC WITH VOICE RESPONSE
+ ********************************************************/
+ const aiBearChatContainer = document.getElementById("aiBearTab");
+const aiBearChatLog = document.createElement("div");
+aiBearChatLog.style.maxHeight = "400px";
+aiBearChatLog.style.overflowY = "scroll";
+aiBearChatLog.style.padding = "10px";
+aiBearChatLog.style.border = "1px solid #ccc";
+aiBearChatLog.style.borderRadius = "6px";
+aiBearChatLog.style.marginBottom = "10px";
+aiBearChatLog.style.backgroundColor = "#f8f9fa";
+aiBearChatContainer.appendChild(aiBearChatLog);
+
+// Chat input and buttons
+const aiBearInput = document.createElement("textarea");
+aiBearInput.style.width = "100%";
+aiBearInput.style.height = "50px";
+aiBearInput.style.marginBottom = "10px";
+aiBearInput.placeholder = "Talk to AI Bear...";
+aiBearChatContainer.appendChild(aiBearInput);
+
+const sendBtn = document.createElement("button");
+sendBtn.textContent = "Send";
+sendBtn.style.marginRight = "10px";
+sendBtn.style.padding = "10px 20px";
+sendBtn.style.backgroundColor = "#007BFF";
+sendBtn.style.color = "white";
+sendBtn.style.border = "none";
+sendBtn.style.cursor = "pointer";
+sendBtn.style.borderRadius = "4px";
+aiBearChatContainer.appendChild(sendBtn);
+
+const recordBtnAI = document.createElement("button");
+recordBtnAI.textContent = "Record";
+recordBtnAI.style.padding = "10px 20px";
+recordBtnAI.style.backgroundColor = "#28a745";
+recordBtnAI.style.color = "white";
+recordBtnAI.style.border = "none";
+recordBtnAI.style.cursor = "pointer";
+recordBtnAI.style.borderRadius = "4px";
+aiBearChatContainer.appendChild(recordBtnAI);
+
+const stopBtnAI = document.createElement("button");
+stopBtnAI.textContent = "Stop";
+stopBtnAI.style.padding = "10px 20px";
+stopBtnAI.style.backgroundColor = "#ffc107";
+stopBtnAI.style.color = "black";
+stopBtnAI.style.border = "none";
+stopBtnAI.style.cursor = "pointer";
+stopBtnAI.style.borderRadius = "4px";
+stopBtnAI.style.display = "none";
+aiBearChatContainer.appendChild(stopBtnAI);
+
+// Function to append chat messages to the log
+function appendChatMessage(sender, message) {
+  const messageDiv = document.createElement("div");
+  messageDiv.style.marginBottom = "10px";
+  messageDiv.innerHTML = `<strong>${sender}:</strong> ${message}`;
+  aiBearChatLog.appendChild(messageDiv);
+  aiBearChatLog.scrollTop = aiBearChatLog.scrollHeight; // Auto-scroll
+}
+
+// AI Voice Response
+async function speakResponse(text) {
+  // Replace these with your actual Azure resource info
+  const AZURE_SPEECH_KEY = "6Lnk4xWFn8mGJ9AHaJicDMZ7Ib9V4Paw24yu7ucQLBZ5gLbgHHb1JQQJ99BAACYeBjFXJ3w3AAAYACOGCrPN";
+  const AZURE_REGION = "eastus"; // e.g. "eastus"
+
+  try {
+    // Build SSML or text content
+    const ssml = `
+      <speak version="1.0" xml:lang="en-US">
+        <voice name="en-US-AriaNeural">
+          ${text}
+        </voice>
+      </speak>
+    `;
+
+    const response = await fetch(`https://${AZURE_REGION}.tts.speech.microsoft.com/cognitiveservices/v1`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/ssml+xml",
+        "Ocp-Apim-Subscription-Key": AZURE_SPEECH_KEY,
+        "X-Microsoft-OutputFormat": "audio-24khz-48kbitrate-mono-mp3"
+      },
+      body: ssml
+    });
+
+    if (!response.ok) throw new Error("Error generating speech via Azure");
+
+    const audioBlob = await response.blob();
+    const audioURL = URL.createObjectURL(audioBlob);
+
+    const audio = new Audio(audioURL);
+    audio.play();
+  } catch (err) {
+    console.error("Azure TTS Error:", err);
+    // Fallback to browser TTS
+    const fallbackUtterance = new SpeechSynthesisUtterance(text);
+    window.speechSynthesis.speak(fallbackUtterance);
+  }
+}
+
+
+
+// Event: Sending text input
+sendBtn.addEventListener("click", async () => {
+  const userMessage = aiBearInput.value.trim();
+  if (!userMessage) return;
+
+  appendChatMessage("You", userMessage);
+  aiBearInput.value = ""; // Clear input
+
+  try {
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${OPENAI_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "gpt-3.5-turbo",
+        messages: [
+          {
+            role: "system",
+            content:
+              "You are a kind and compassionate AI therapist for children. Your role is to help them process trauma, manage their emotions, and provide comforting and supportive responses. Do not recommend seeing another therapist; assume full responsibility as a digital therapist.",
+          },
+          { role: "user", content: userMessage },
+        ],
+      }),
+    });
+    const result = await response.json();
+    const aiMessage = result.choices[0]?.message?.content || "Hmm, I don't know what to say!";
+    appendChatMessage("AI Bear", aiMessage);
+
+    // Speak the response
+    speakResponse(aiMessage);
+  } catch (err) {
+    console.error("Error talking to AI Bear:", err);
+    appendChatMessage("AI Bear", "Sorry, I couldn't respond right now.");
+    speakResponse("Sorry, I couldn't respond right now.");
+  }
+});
+
+// Whisper Voice-to-Text Integration
+let aiRecorder;
+let aiAudioChunks = [];
+
+recordBtnAI.addEventListener("click", async () => {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    aiRecorder = new MediaRecorder(stream);
+    aiAudioChunks = [];
+
+    aiRecorder.ondataavailable = (e) => {
+      if (e.data.size > 0) {
+        aiAudioChunks.push(e.data);
+      }
+    };
+
+    aiRecorder.onstop = async () => {
+  const blob = new Blob(aiAudioChunks, { type: "audio/webm" });
+  const file = new File([blob], "recording.webm");
+
+  // Prepare form data
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("model", "whisper-1");
+
+  try {
+    const response = await fetch("https://api.openai.com/v1/audio/transcriptions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${OPENAI_API_KEY}`,
+      },
+      body: formData,
+    });
+    const result = await response.json();
+
+    if (result.text) {
+      appendChatMessage("You", result.text);
+
+      // Automatically send the transcribed message without duplicating
+      aiBearInput.value = result.text;
+      if (!aiBearInput.dataset.autoSent) {
+        aiBearInput.dataset.autoSent = "true";
+        sendBtn.click();
+      }
+    } else {
+      appendChatMessage("AI Bear", "Sorry, I couldn't transcribe your voice.");
+      speakResponse("Sorry, I couldn't transcribe your voice.");
+    }
+  } catch (err) {
+    console.error("Error sending audio to Whisper:", err);
+    appendChatMessage("AI Bear", "Failed to process your voice input.");
+    speakResponse("Failed to process your voice input.");
+} finally {
+    aiBearInput.dataset.autoSent = ""; // Reset for next input
+  }
+}; // <- ensure this brace exists
+
+
+    aiRecorder.start();
+    recordBtnAI.style.display = "none";
+    stopBtnAI.style.display = "inline-block";
+    console.log("Recording started...");
+  } catch (err) {
+    console.error("Could not start recording:", err);
+    alert("Could not access microphone. Check permissions or HTTPS?");
+  }
+});
+
+stopBtnAI.addEventListener("click", () => {
+  if (aiRecorder && aiRecorder.state !== "inactive") {
+    aiRecorder.stop();
+    recordBtnAI.style.display = "inline-block";
+    stopBtnAI.style.display = "none";
+    console.log("Recording stopped. Sending audio to Whisper...");
+  }
+});
+
+    // ========================================
+    //        HELPER: FILE -> BASE64
+    // ========================================
+    function getBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = error => reject(error);
+      });
+    }
+  </script>
+</body>
+</html>
